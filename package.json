@@ -1,5 +1,5 @@
 {
-  "name": "bab-hub",
+  "name": "@alexkar598/bab-hub",
   "version": "1.0.0",
   "description": "Private module to validate CGI certs",
   "main": "dist/index.js",
