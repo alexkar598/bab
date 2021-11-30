@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Private module to validate CGI certs",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
   "devDependencies": {
     "@types/node": "^16.11.11",
