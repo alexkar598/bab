@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.packetTypes = exports.Encode = exports.Decode = exports.requestCkey = void 0;
 const net_1 = __importDefault(require("net"));
+const debug_1 = __importDefault(require("debug"));
 function Encode(data, key) {
     let checksum = Buffer.alloc(1);
     let returnBuf = Buffer.alloc(data.length + 1);
@@ -39,8 +40,15 @@ const packetTypes = {
     0x43: "ResponseMsg"
 };
 exports.packetTypes = packetTypes;
+let socketNumber = 0;
 function requestCkey(cert, domain) {
+    const debugSocket = (0, debug_1.default)(`bab-hub:Socket${socketNumber++}`);
+    debugSocket("Requesting Ckey | Cert: %s | Domain: %s", cert, domain);
     return new Promise((resolve, reject) => {
+        if (cert.length != 24) {
+            reject(Error(`Invalid cert size, expected 24, got ${cert.length}. Cert: ${cert}`));
+            return;
+        }
         const socket = new net_1.default.Socket();
         let SocketState;
         (function (SocketState) {
@@ -57,24 +65,23 @@ function requestCkey(cert, domain) {
         let dataPointer = 0;
         let key = null;
         socket.on("close", () => {
-            console.debug("BYOND Hub says goodbye!");
+            debugSocket("BYOND Hub says goodbye!");
             reject(Error("BYOND closed connection"));
         });
         socket.on("connect", () => {
-            console.debug("Socket open, Hello BYOND?");
+            debugSocket("Socket open, Hello BYOND?");
         });
         function socketError(error) {
             socket.end();
             state = SocketState.Error;
             reject(error);
-            throw error;
         }
         function receiveMsg(type, data) {
-            console.debug("BYOND says:", packetTypes[type] ? packetTypes[type] : type.toString(16), data);
+            debugSocket("Packet | Type %s | Data %o ", packetTypes[type] ? packetTypes[type] : type.toString(16), data);
             switch (type) {
                 case 0x42: {
                     key = data.readUInt32LE(12);
-                    console.debug("Key for socket is", key.toString(16));
+                    debugSocket("Socket key received %s", key.toString(16));
                     const certBuffer = new TextEncoder().encode(cert);
                     const domainBuffer = new TextEncoder().encode(domain);
                     //certLen, 1 for nullByte, domLen, 1 for nullByte
@@ -91,18 +98,18 @@ function requestCkey(cert, domain) {
                     Buffer.from(domainBuffer).copy(dataBuffer, certBuffer.length + 1);
                     //Encrypt the dataBuffer and put it in the request
                     Encode(dataBuffer, key).copy(packetBuffer, 4);
-                    console.debug("Sending SendLookupCgiCertMsg to BYOND Hub with data", dataBuffer.toString());
+                    debugSocket("Sending SendLookupCgiCertMsg %O", dataBuffer);
                     socket.write(packetBuffer);
                     break;
                 }
                 case 0x43: {
                     if (!key)
-                        socketError(Error("The key's gone PLAID sir"));
+                        return socketError(Error("The key's gone PLAID sir"));
                     const decryptedData = Decode(data, key);
                     const valid = !!decryptedData[0];
                     const decodedData = new TextDecoder().decode(decryptedData.slice(1, -1));
                     const parsedData = Object.fromEntries(new URLSearchParams(decodedData.replace("&", "%26").replace(";", "&")));
-                    console.debug("Userinfo:", valid, parsedData);
+                    debugSocket("User Info | Valid: %o | Data: %s", valid, decodedData);
                     if (valid) {
                         resolve({
                             valid: true,
@@ -121,7 +128,7 @@ function requestCkey(cert, domain) {
                 }
                 default: {
                     console.error("Unknown packet", type.toString(16), data);
-                    socketError("Invalid response packet type");
+                    return socketError("Invalid response packet type");
                 }
             }
         }
@@ -138,7 +145,7 @@ function requestCkey(cert, domain) {
                     const copiedBytes = data.copy(headerBuffer, headerPointer, 0, 4 - headerPointer);
                     headerPointer += copiedBytes;
                     if (headerPointer < 4) {
-                        console.debug("Awaiting more header data");
+                        debugSocket("Awaiting more header data");
                         return;
                     }
                     dataBuffer = Buffer.alloc(getPacketLength());
@@ -149,14 +156,17 @@ function requestCkey(cert, domain) {
                     break;
                 case SocketState.ExpectData:
                     if (!dataBuffer)
-                        socketError(Error("dataBuffer is somehow lasagna"));
+                        return socketError(Error("dataBuffer is somehow lasagna"));
                     if (data.copy(dataBuffer, dataPointer) < data.length)
-                        socketError(Error("data is larger than length"));
+                        return socketError(Error("data is larger than length"));
                     dataPointer += data.length;
                     if (dataPointer === dataBuffer.length) {
                         receiveMsg(headerBuffer.readUInt16BE(0), dataBuffer);
                         //Full reset
                         reset();
+                    }
+                    else {
+                        debugSocket("Awaiting more data");
                     }
                     break;
                 case SocketState.Error:
@@ -165,17 +175,19 @@ function requestCkey(cert, domain) {
         }
         socket.on("data", processData);
         socket.on("error", error => {
-            console.error("THE FLOOR IS LAVA, SOCKET ERROR", error);
-            socketError("Socket entered error state");
+            console.error("Socket error", error);
+            return socketError("Socket entered error state");
         });
-        socket.on("read", () => {
-            console.debug("Socket is ready, plz talk");
+        socket.on("ready", () => {
+            debugSocket("Socket is ready");
         });
         socket.on("timeout", () => {
-            console.debug("I'm bored, can we close this connection already?");
-            socketError("BYOND did not respond in the allocated time");
+            debugSocket("Connection timeout");
+            socket.end();
+            return socketError("BYOND did not respond in the allocated time");
         });
         socket.connect(6001, "hub.byond.com");
+        debugSocket("Opening connection");
     });
 }
 exports.requestCkey = requestCkey;

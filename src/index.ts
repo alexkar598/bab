@@ -1,4 +1,5 @@
 import net from "net"
+import debug from "debug"
 
 function Encode(data: Buffer, key: number): Buffer {
   let checksum = Buffer.alloc(1)
@@ -47,8 +48,18 @@ const packetTypes: Record<number, string | undefined> = {
   0x43: "ResponseMsg"
 }
 
+let socketNumber = 0
+
 function requestCkey(cert: string, domain: string): Promise<UserInfo> {
+  const debugSocket = debug(`bab-hub:Socket${socketNumber++}`)
+  debugSocket("Requesting Ckey | Cert: %s | Domain: %s", cert, domain)
+
   return new Promise((resolve, reject) => {
+    if(cert.length != 24) {
+      reject(Error(`Invalid cert size, expected 24, got ${cert.length}.`))
+      return
+    }
+
     const socket = new net.Socket()
 
     enum SocketState {
@@ -67,26 +78,25 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
     let key: number | null = null
 
     socket.on("close", () => {
-      console.debug("BYOND Hub says goodbye!")
-      reject(Error("BYOND closed connection"))
+      debugSocket("BYOND Hub says goodbye!")
+      reject(Error("HUB closed connection"))
     })
     socket.on("connect", () => {
-      console.debug("Socket open, Hello BYOND?")
+      debugSocket("Socket open, Hello BYOND?")
     })
 
-    function socketError(error: unknown): never {
+    function socketError(error: unknown) {
       socket.end()
       state = SocketState.Error
       reject(error)
-      throw error
     }
 
     function receiveMsg(type: number, data: Buffer) {
-      console.debug("BYOND says:", packetTypes[type] ? packetTypes[type] : type.toString(16), data)
+      debugSocket("Packet | Type %s | Data %o ", packetTypes[type] ? packetTypes[type] : type.toString(16), data)
       switch (type) {
         case 0x42: {
           key = data.readUInt32LE(12)
-          console.debug("Key for socket is", key.toString(16))
+          debugSocket("Socket key received %s", key.toString(16))
 
           const certBuffer = new TextEncoder().encode(cert)
           const domainBuffer = new TextEncoder().encode(domain)
@@ -109,12 +119,12 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
           //Encrypt the dataBuffer and put it in the request
           Encode(dataBuffer, key).copy(packetBuffer, 4)
 
-          console.debug("Sending SendLookupCgiCertMsg to BYOND Hub with data", dataBuffer.toString())
+          debugSocket("Sending SendLookupCgiCertMsg %O", dataBuffer)
           socket.write(packetBuffer)
           break
         }
         case 0x43: {
-          if (!key) socketError(Error("The key's gone PLAID sir"))
+          if (!key) return socketError(Error("The key's gone PLAID sir"))
 
           const decryptedData = Decode(data, key)
           const valid = !!decryptedData[0]
@@ -124,7 +134,7 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
               decodedData.replace("&", "%26").replace(";", "&")
             )
           )
-          console.debug("Userinfo:", valid, parsedData)
+          debugSocket("User Info | Valid: %o | Data: %s", valid, decodedData)
           if(valid) {
             resolve({
               valid: true,
@@ -143,7 +153,7 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
         }
         default: {
           console.error("Unknown packet", type.toString(16), data)
-          socketError("Invalid response packet type")
+          return socketError("Invalid response packet type")
         }
       }
     }
@@ -162,7 +172,7 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
           const copiedBytes = data.copy(headerBuffer, headerPointer, 0, 4 - headerPointer)
           headerPointer += copiedBytes
           if (headerPointer < 4) {
-            console.debug("Awaiting more header data")
+            debugSocket("Awaiting more header data")
             return
           }
 
@@ -174,9 +184,9 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
           }
           break
         case SocketState.ExpectData:
-          if (!dataBuffer) socketError(Error("dataBuffer is somehow lasagna"))
+          if (!dataBuffer) return socketError(Error("dataBuffer is somehow lasagna"))
 
-          if (data.copy(dataBuffer, dataPointer) < data.length) socketError(Error("data is larger than length"))
+          if (data.copy(dataBuffer, dataPointer) < data.length) return socketError(Error("data is larger than length"))
 
           dataPointer += data.length
 
@@ -184,6 +194,8 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
             receiveMsg(headerBuffer.readUInt16BE(0), dataBuffer)
             //Full reset
             reset()
+          } else {
+            debugSocket("Awaiting more data")
           }
 
           break
@@ -194,17 +206,19 @@ function requestCkey(cert: string, domain: string): Promise<UserInfo> {
 
     socket.on("data", processData)
     socket.on("error", error => {
-      console.error("THE FLOOR IS LAVA, SOCKET ERROR", error)
-      socketError("Socket entered error state")
+      console.error("Socket error", error)
+      return socketError("Socket entered error state")
     })
-    socket.on("read", () => {
-      console.debug("Socket is ready, plz talk")
+    socket.on("ready", () => {
+      debugSocket("Socket is ready")
     })
     socket.on("timeout", () => {
-      console.debug("I'm bored, can we close this connection already?")
-      socketError("BYOND did not respond in the allocated time")
+      debugSocket("Connection timeout")
+      socket.end()
+      return socketError("BYOND did not respond in the allocated time")
     })
     socket.connect(6001, "hub.byond.com")
+    debugSocket("Opening connection")
   })
 }
 export { requestCkey, Decode, Encode, packetTypes }
