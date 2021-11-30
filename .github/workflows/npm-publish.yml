@@ -19,9 +19,6 @@ jobs:
   publish-gpr:
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -30,6 +27,8 @@ jobs:
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
       - run: npm run build
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{secret.GITHUB_TOKEN}}
+          registry: https://npm.pkg.github.com/
+          access: "restricted"
