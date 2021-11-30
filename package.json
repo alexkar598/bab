@@ -1,6 +1,6 @@
 {
   "name": "@alexkar598/bab-hub",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Private module to validate CGI certs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
