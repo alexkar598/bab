@@ -29,6 +29,6 @@ jobs:
       - run: npm run build
       - uses: JS-DevTools/npm-publish@v1
         with:
-          token: ${{secret.GITHUB_TOKEN}}
+          token: ${{ secrets.GITHUB_TOKEN }}
           registry: https://npm.pkg.github.com/
           access: "restricted"
