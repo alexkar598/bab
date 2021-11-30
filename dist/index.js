@@ -1,4 +1,10 @@
-import net from "net";
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.packetTypes = exports.Encode = exports.Decode = exports.requestCkey = void 0;
+const net_1 = __importDefault(require("net"));
 function Encode(data, key) {
     let checksum = Buffer.alloc(1);
     let returnBuf = Buffer.alloc(data.length + 1);
@@ -9,6 +15,7 @@ function Encode(data, key) {
     returnBuf[returnBuf.length - 1] = checksum[0];
     return returnBuf;
 }
+exports.Encode = Encode;
 function Decode(data, key) {
     let checksum = Buffer.alloc(1);
     let returnBuf = Buffer.alloc(data.length - 1);
@@ -25,14 +32,16 @@ function Decode(data, key) {
     }
     return returnBuf;
 }
+exports.Decode = Decode;
 const packetTypes = {
     0x42: "HelloMsg",
     0x4A: "SendLookupCgiCertMsg",
     0x43: "ResponseMsg"
 };
+exports.packetTypes = packetTypes;
 function requestCkey(cert, domain) {
     return new Promise((resolve, reject) => {
-        const socket = new net.Socket();
+        const socket = new net_1.default.Socket();
         let SocketState;
         (function (SocketState) {
             SocketState[SocketState["ExpectHeader"] = 0] = "ExpectHeader";
@@ -169,4 +178,4 @@ function requestCkey(cert, domain) {
         socket.connect(6001, "hub.byond.com");
     });
 }
-export { requestCkey, Decode, Encode, packetTypes };
+exports.requestCkey = requestCkey;
