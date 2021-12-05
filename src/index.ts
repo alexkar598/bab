@@ -1,9 +1,18 @@
-import {requestCkey} from "@alexkar598/bab-hub"
+import path from "path";
+import {fileURLToPath} from "url";
+import {connectDb} from "./db/index.js";
+import {registerServer} from "./server.js";
+
+export function dirname(metaUrl: string) {
+  const __filename = fileURLToPath(metaUrl);
+  return path.dirname(__filename);
+}
 
 async function main() {
-  const invalidCert = "123456789012345678901234"
-  console.log(await requestCkey(invalidCert, "localhost"))
+  await registerServer();
+  await connectDb();
 }
+
 main().catch(error => {
-  console.error("An error occured!", error)
-})
+  console.error("An error occurred!", error);
+});

@@ -1,0 +1,69 @@
+{
+  //Where to bind http server
+  "server": {
+    "host": "::1",
+    "port": "80",
+    //How can people access this service
+    "publicUrl": ""
+  },
+  //Database settings
+  "database": {
+    "connectionString": ""
+  },
+  "logging": {
+    /* Sources */
+
+
+    //Controls settings for the HTTP logger
+    "http": {
+      //Level of 1xx-3xx messages, 4xx is always warning and 5xx is always error
+      "level": "info",
+      //Log metadata about the request and response (can spam logs quickly)
+      "meta": false
+    },
+    "database": {
+      "levels": {
+        "query": "debug",
+        "info": "info",
+        "warn": "warning",
+        "error": "error"
+      }
+    },
+
+
+    /* Sinks */
+
+
+    //Controls settings for file log output
+    "file": {
+      //Minimum level for logs to be output
+      "level": "info",
+      //Enabled
+      "enabled": true
+    },
+    //Controls settings for file error log output
+    "file-err": {
+      //Minimum level for logs to be output
+      "level": "warning",
+      //Enabled
+      "enabled": true
+    },
+    "console": {
+      //Minimum level for logs to be output
+      "level": "info",
+      //Enabled
+      "enabled": true,
+      //Use util.inspect() to colorize the metadata, has a performance impact
+      "pretty": false
+    }
+  },
+  //Changing any of these in production environments is heavily discouraged. You will probably violate an RFC and reduce the security of your installation
+  "security": {
+    //Reject any insecure connections.
+    "secure": true,
+    //Enable mocking of byond.com/login.cgi.
+    "test": false,
+    //Enforce redirect_uris
+    "enforce_redirect_uri": true
+  }
+}
