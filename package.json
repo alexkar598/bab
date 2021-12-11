@@ -7,7 +7,7 @@
   "scripts": {
     "nodemon": "NODE_OPTIONS=\"--loader ts-node/esm\" npx nodemon src/index.ts",
     "start": "NODE_OPTIONS=\"--loader ts-node/esm\" node src/index.ts",
-    "devUpdateDb": "npx prisma format && npx prisma db push && npx prisma generate && npx prisma db seed",
+    "devUpdateDb": "npx prisma format && npx prisma db push && npx prisma generate",
     "generateDbClient": "npx prisma generate"
   },
   "keywords": [],
@@ -63,8 +63,5 @@
       "node_modules/.prisma"
     ],
     "ext": "json,ts,js,prisma"
-  },
-  "prisma": {
-    "seed": "node --loader ts-node/esm prisma/seed.ts"
   }
 }

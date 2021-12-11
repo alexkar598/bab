@@ -9,7 +9,7 @@ const prisma = new Prisma.PrismaClient({
 });
 
 async function main() {
-  /*await prisma.client.createMany({
+  await prisma.client.createMany({
     data: [
       {
         clientId: "testing_public",
@@ -38,7 +38,7 @@ async function main() {
       },
     ],
     skipDuplicates: true,
-  });*/
+  });
 }
 
 main()

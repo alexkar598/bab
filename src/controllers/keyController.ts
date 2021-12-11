@@ -18,6 +18,8 @@ async function generateNewKey(): Promise<Prisma.SigningKey> {
   const {publicKey: _publicKey, privateKey: _privateKey} = await generateKeyPair("RS256");
   const publicKey = await exportJWK(_publicKey);
   const privateKey = await exportJWK(_privateKey);
+  publicKey.alg = "RS256";
+  publicKey.use = "sig";
   const kid = await calculateJwkThumbprint(publicKey);
   publicKey.kid = kid;
   privateKey.kid = kid;
