@@ -6,8 +6,7 @@ const {createLogger, format, transports} = winston;
 import chalk from "chalk";
 import {table} from "table";
 import pchars from "printable-characters";
-
-const now = new Date();
+import "winston-daily-rotate-file";
 
 export const logLevels = {
   emerg: 0,
@@ -121,10 +120,12 @@ const logger = createLogger({
   level: "info",
   levels: logLevels,
   transports: [
-    new transports.File({
+    new transports.DailyRotateFile({
       level: config.get<string>("logging.file.level"),
       silent: !config.get<boolean>("logging.file.enabled"),
-      filename: `logs/${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}.log`,
+      datePattern: "YYYY-MM-DD",
+      filename: `logs/bab-%DATE%.log`,
+      dirname: "logs",
       format: format.combine(
         stripEmptyMeta(),
         addRequestId(),
@@ -133,10 +134,12 @@ const logger = createLogger({
         format.json(),
       ),
     }),
-    new transports.File({
+    new transports.DailyRotateFile({
       level: config.get<string>("logging.file-err.level"),
       silent: !config.get<boolean>("logging.file-err.enabled"),
-      filename: `logs/${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-err.log`,
+      datePattern: "YYYY-MM-DD",
+      filename: `logs/bab-%DATE%-err.log`,
+      dirname: "logs",
       format: format.combine(
         stripEmptyMeta(),
         addRequestId(),

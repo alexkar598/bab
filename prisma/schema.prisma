@@ -18,6 +18,7 @@ model Client {
   allowedTokenGrant Boolean         @default(false)
   expiry            Int             @default(10080)
   Authorization     Authorization[]
+  disabled          String?
 }
 
 enum ClientType {

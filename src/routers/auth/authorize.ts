@@ -75,9 +75,25 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
   if (client_id === undefined) return unknownClientId();
   const client = await prismaDb.client.findUnique({
     where: {clientId: client_id},
-    select: {redirectUris: true, allowedTokenGrant: true},
+    select: {redirectUris: true, allowedTokenGrant: true, disabled: true},
   });
   if (!client) return unknownClientId();
+
+  if (client.disabled !== null) {
+    authLogger.warning(`Client is disabled`, {
+      client_id,
+    });
+    return (
+      res
+        .status(400)
+        //XSS protection
+        .type("text/plain")
+        .send(
+          `The client "${client_id}" has been disabled for the following reason: ${client.disabled}.`,
+        )
+        .end()
+    );
+  }
 
   //Validate that redirect_uri is valid
   if (

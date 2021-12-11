@@ -137,6 +137,7 @@ const callbackEndpoint = expressAsyncHandler(async (req, res) => {
         select: {
           clientId: true,
           expiry: true,
+          disabled: true,
         },
       },
       id: true,
@@ -173,6 +174,14 @@ const callbackEndpoint = expressAsyncHandler(async (req, res) => {
     return returnError(`client_id mismatch. Got ${client_id}`);
   }
 
+  if (authorization.client.disabled !== null) {
+    callbackLogger.warning("client is disabled", {
+      client_id,
+    });
+    return returnError(
+      `The client "${client_id}" is disabled for the following reason: ${authorization.client.disabled}`,
+    );
+  }
   req.redirect_uri = authorization.redirectUri;
 
   //Check that the user hasn't changed IPs (uh oh) between /authorize and /callback
@@ -302,7 +311,8 @@ const callbackEndpoint = expressAsyncHandler(async (req, res) => {
     callbackLogger.info("Issuing ID token via hybrid/implicit flow");
     id_token = await new SignJWT({
       iss: config.get<string>("server.publicUrl"),
-      sub: userData.key,
+      sub: `user:${userData.key}`,
+      ckey: userData.key,
       aud: client_id,
       exp: new Date().valueOf() + authorization.client.expiry * 1000,
       iat: new Date().valueOf(),

@@ -4,12 +4,14 @@ ENV NODE_ENV=production
 
 WORKDIR /app
 
-ARG NPM_TOKEN
-COPY .npmrc.docker .npmrc
 COPY ["package.json", "package-lock.json", "./"]
 
 RUN npm install --production
 
+COPY "node_modules/@alexkar598/bab-hub" "node_modules/@alexkar598/bab-hub"
+
 COPY . .
 
-CMD [ "npm", "start" ]
+RUN npm run generateDbClient
+
+CMD /bin/sh -c "npx prisma migrate deploy && npm start"

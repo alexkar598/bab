@@ -127,6 +127,7 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
       client: {
         select: {
           expiry: true,
+          disabled: true,
         },
       },
     },
@@ -170,14 +171,25 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
     return oauth_token_error(res, "invalid_grant", "Invalid redirect_uri");
   }
 
+  if (authorization.client.disabled !== null) {
+    tokenLogger.warning("Client is disabled", {client_id});
+    return oauth_token_error(
+      res,
+      "invalid_client",
+      `The client "${client_id}" is disabled for the following reason: ${authorization.client.disabled}`,
+    );
+  }
+
   const key = await getActiveKey();
 
   callbackLogger.info("Issuing ID token via hybrid/implicit flow");
-  const id_token = await new SignJWT({
+
+  const access_token = await new SignJWT({
     iss: config.get<string>("server.publicUrl"),
     //If there's a code, there's a ckey
-    sub: authorization.ckey!,
-    aud: client_id,
+    sub: `user:${authorization.ckey!}`,
+    ckey: authorization.ckey!,
+    aud: config.get<string>("server.publicUrl"),
     exp: new Date().valueOf() + authorization.client.expiry * 1000,
     iat: new Date().valueOf(),
     //If there's a code, the auth is complete
@@ -194,11 +206,12 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
       type: "JOSE",
     })
     .sign(key.importedPrivate);
-  const access_token = await new SignJWT({
+  const id_token = await new SignJWT({
     iss: config.get<string>("server.publicUrl"),
     //If there's a code, there's a ckey
-    sub: authorization.ckey!,
-    aud: config.get<string>("server.publicUrl"),
+    sub: `user:${authorization.ckey!}`,
+    ckey: authorization.ckey!,
+    aud: client_id,
     exp: new Date().valueOf() + authorization.client.expiry * 1000,
     iat: new Date().valueOf(),
     //If there's a code, the auth is complete
@@ -206,6 +219,7 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
     nonce: authorization.nonce,
     azp: client_id,
     c_hash: generateOIDCHash(code),
+    at_hash: generateOIDCHash(access_token),
     //If there's a code, there's a gender
     gender: authorization.userData!.gender,
   })
