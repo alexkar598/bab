@@ -57,17 +57,21 @@ expressApp.use((err: unknown, _req: Request, res: Response, _next: NextFunction)
   }
 });
 
-export async function registerServer() {
-  const port = config.get<number>("server.port");
-  const expressServer = expressApp.listen(port, config.get<string>("server.host"), () => {
-    httpLogger.info(`Listening on ${port}`);
-  });
-  expressServer.on("error", e => {
-    httpLogger.error(`Unable to listen on ${port}:`, e);
-  });
+export function registerServer() {
+  return new Promise((resolve, reject) => {
+    const port = config.get<number>("server.port");
+    const expressServer = expressApp.listen(port, config.get<string>("server.host"), () => {
+      httpLogger.info(`Listening on ${port}`);
+      resolve(port);
+    });
+    expressServer.on("error", e => {
+      httpLogger.error(`Unable to listen on ${port}:`, e);
+      reject(e);
+    });
 
-  process.on("SIGTERM", () => {
-    httpLogger.info("Received stop signal. Goodbye.");
-    expressServer.close();
+    process.on("SIGTERM", () => {
+      httpLogger.info("Received stop signal. Goodbye.");
+      expressServer.close();
+    });
   });
 }

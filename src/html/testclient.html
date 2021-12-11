@@ -6,24 +6,65 @@
 </head>
 <body>
 <h2>Test Client</h2>
+
+<h3 id="welcome"></h3>
+<a id="action_link"></a>
+<hr>
+<form method="post" action="../../auth/authorize">
+  <label>
+    response_type
+    <input name="response_type" value="code id_token">
+  </label>
+  <label>
+    client_id
+    <input name="client_id" value="testing">
+  </label>
+  <label>
+    redirect_uri
+    <input name="redirect_uri" id="redir_uri">
+  </label>
+  <label>
+    state
+    <input name="state" value="meow">
+  </label>
+  <label>
+    scope
+    <input name="scope" value="openid">
+  </label>
+  <label>
+    prompt
+    <input name="prompt" value="">
+  </label>
+  <label>
+    nonce
+    <input name="nonce" value="nonce be like">
+  </label>
+  <br>
+  <input type="submit" value="Login With BYOND (POST)">
+</form>
+
 <script>
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.hash.substring(1));
+  console.log(params, window.location)
   const code = params.get("code");
-  const redirect = new URL(window.location.href);
+  const id_token = params.get("id_token");
+  const redirect = new URL(window.location);
+  redirect.hash = ""
+  redirect.search = ""
   for (const param of [...redirect.searchParams.keys()]) {
     redirect.searchParams.delete(param);
   }
 
-  if (code !== null) {
-    const welcome = document.createElement("h3")
-    document.body.append(welcome)
+  if (code) {
+    const welcome = document.getElementById("welcome")
     const url = new URL("../../auth/token", window.location.href);
 
     const params = new URLSearchParams();
     params.set("grant_type", "authorization_code");
     params.set("code", code);
     params.set("redirect_uri", redirect.toString());
-    fetch(url, {
+    //params.set("client_id", "testing_public");
+    fetch(url.toString(), {
       method: "POST",
       body: params,
       headers: {
@@ -31,29 +72,32 @@
       },
     }).then(response => response.json()).then(response => {
       const access_token = response.access_token
-      welcome.textContent = `Thank you for logging in, ${window.atob(access_token)}`
+      if(access_token) {
+        welcome.textContent = `Thank you for logging in, ${window.atob(access_token)}\n ID Token: ${id_token}`
+      } else {
+        welcome.textContent = `Can't fetch auth token ${JSON.stringify(response)}`
+      }
     });
   }
 
-    if(code) {
-    const link = document.createElement("a");
+  if(code) {
+    const link = document.getElementById("action_link");
     const url = new URL(window.location.href);
     url.searchParams.delete("code")
     url.searchParams.delete("state")
     link.href = url.toString()
     link.text = "Logout"
-    document.body.append(link)
   } else {
-      const link = document.createElement("a");
-      const url = new URL("../../auth/authorize", window.location.href);
-      url.searchParams.set("response_type", "code");
-      url.searchParams.set("client_id", "testing");
-      url.searchParams.set("redirect_uri", redirect.toString());
-      url.searchParams.set("state", Math.random().toString().substring(2));
-      link.href = url.toString();
-      link.text = "Login with byond";
-      document.body.append(link);
+    const link = document.getElementById("action_link");
+    const url = new URL("../../auth/authorize", window.location.href);
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", "testing");
+    url.searchParams.set("redirect_uri", redirect.toString());
+    url.searchParams.set("state", Math.random().toString().substring(2));
+    link.href = url.toString();
+    link.text = "Login with byond";
   }
+  document.getElementById("redir_uri").value = redirect.toString();
 </script>
 </body>
 </html>

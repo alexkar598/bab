@@ -33,6 +33,9 @@ const prisma = new Prisma.PrismaClient({
 prisma.$on("query", _e => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {timestamp, ...e} = _e;
+  if (e.duration > 100) {
+    dbLogger.warning("Slow query", e);
+  }
   dbLogger.log(config.get<string>("logging.database.levels.query"), "Database Query", e);
 });
 function logger(level: string) {

@@ -25,7 +25,7 @@ async function main() {
       },
       {
         clientId: "testing",
-        client_secret: "testing_secret",
+        clientSecret: "testing_secret",
         contactInfo: "Application Owner",
         desc: "Confidential testing client",
         redirectUris: [

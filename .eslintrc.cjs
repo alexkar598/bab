@@ -13,7 +13,7 @@ module.exports = {
   plugins: ["@typescript-eslint", "prettier", "import"],
   rules: {
     "prettier/prettier": "error",
-    "@typescript-eslint/strict-boolean-expressions": ["error", {allowNullableBoolean: true}],
+    "@typescript-eslint/strict-boolean-expressions": ["error", {allowNullableBoolean: true, allowAny: true}],
     "import/no-unresolved": "error",
     "import/order": "warn",
     "import/no-namespace": "error",

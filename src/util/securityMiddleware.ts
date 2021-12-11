@@ -25,6 +25,9 @@ export function registerSecurityMiddleware(app: Application) {
         res.redirect(errorUrl.toString());
       }
 
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("X-Frame-Options", "DENY");
+
       const rawbyondcert = req.query.byondcert;
       if (rawbyondcert !== undefined) {
         req.callback = true;
@@ -36,7 +39,16 @@ export function registerSecurityMiddleware(app: Application) {
           return errorRedirect("State is not a string. Contact application owner");
         }
 
-        if (await prismaDb.byondCert.findFirst({where: {byondCert: jsonbyondcert, byondState}})) {
+        if (
+          await prismaDb.byondCert.findUnique({
+            where: {
+              byondState_byondCert: {
+                byondState,
+                byondCert: jsonbyondcert,
+              },
+            },
+          })
+        ) {
           securityLogger.warning("Cert/state combo has already been used", {
             byondState,
             byondCert: jsonbyondcert,

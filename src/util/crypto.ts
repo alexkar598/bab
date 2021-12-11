@@ -1,4 +1,4 @@
-import {randomBytes, timingSafeEqual} from "crypto";
+import crypto, {randomBytes, timingSafeEqual} from "crypto";
 
 function generateSecureString(length: number): Promise<string> {
   return new Promise(resolve => {
@@ -15,4 +15,8 @@ function secureCompare(_a: string, _b: string) {
   return timingSafeEqual(a, b);
 }
 
-export {generateSecureString, secureCompare};
+function generateOIDCHash(input: string) {
+  return crypto.createHash("sha256").update(input).digest().slice(0, 16).toString("base64url");
+}
+
+export {generateSecureString, secureCompare, generateOIDCHash};
