@@ -65,31 +65,14 @@ export function registerSecurityMiddleware(app: Application) {
           },
         });
 
-        res
-          .type("html")
-          .send(
-            `  
-          <!--suppress ES6ConvertVarToLetConst -->
-          <script>
-            try{
-            var destination = new URL(window.location.href);
-            destination.searchParams.delete("byondcert")
-            destination.searchParams.set("encoded_cert", "${encodedCert}")
-            window.location.replace(destination)
-            } catch (e) {
-              window.location.replace("${config.get<string>(
-                "server.publicUrl",
-              )}/byondcerterror/?error=${encodeURIComponent(
-              "Client JS error. Request ID: " + rTracer.id(),
-            )}")
-            }
-          </script>
-          <noscript>
-            This page requires Javascript. Alternatively, remove the byondcert parameter in the url and set the encoded_cert parameter to ${encodedCert}
-          </noscript>
-        `,
-          )
-          .end();
+        console.log(req.path, config.get<string>("server.publicUrl"));
+        const targetUri = new URL(req.path, config.get<string>("server.publicUrl"));
+        targetUri.searchParams.set("byond_state", byondState);
+        targetUri.searchParams.set("client_id", req.query.client_id as string);
+        targetUri.searchParams.set("byondcertexp", req.query.byondcertexp as string);
+        targetUri.searchParams.set("encoded_cert", encodedCert);
+
+        res.redirect(targetUri.toString());
       } else {
         next();
       }
