@@ -5,6 +5,7 @@ import {authorizeEndpoint} from "./authorize.js";
 import {callbackEndpoint} from "./callback.js";
 import {listKeysEndpoint} from "./keys.js";
 import {tokenEndpoint} from "./token.js";
+import {userInfoEndpoint} from "./userinfo.js";
 
 const authRouter = express.Router();
 
@@ -49,3 +50,6 @@ authRouter.use("/token", (err: unknown, req: Request, res: Response, next: NextF
 });
 
 authRouter.get("/keys", listKeysEndpoint);
+
+authRouter.get("/userinfo", userInfoEndpoint);
+authRouter.post("/userinfo", userInfoEndpoint);

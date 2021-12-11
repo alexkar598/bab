@@ -1,9 +1,13 @@
 import Prisma from "@prisma/client";
+import config from "config";
 import expressAsyncHandler from "express-async-handler";
+import {SignJWT} from "jose";
+import {getActiveKey} from "../../controllers/keyController.js";
 import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";
-import {secureCompare} from "../../util/crypto.js";
+import {generateOIDCHash, secureCompare} from "../../util/crypto.js";
 import {oauth_token_error} from "../../util/responseHelpers.js";
+import {callbackLogger} from "./callback.js";
 
 const tokenLogger = moduleLogger("TokenEndpoint");
 const tokenEndpoint = expressAsyncHandler(async (req, res) => {
@@ -114,6 +118,17 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
       redirectUri: true,
       ckey: true,
       endDate: true,
+      nonce: true,
+      userData: {
+        select: {
+          gender: true,
+        },
+      },
+      client: {
+        select: {
+          expiry: true,
+        },
+      },
     },
   });
 
@@ -154,13 +169,57 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
     });
     return oauth_token_error(res, "invalid_grant", "Invalid redirect_uri");
   }
-  const username = authorization.ckey;
 
-  //TODO: Implement OIDC, this is not secure at all.
+  const key = await getActiveKey();
+
+  callbackLogger.info("Issuing ID token via hybrid/implicit flow");
+  const id_token = await new SignJWT({
+    iss: config.get<string>("server.publicUrl"),
+    //If there's a code, there's a ckey
+    sub: authorization.ckey!,
+    aud: client_id,
+    exp: new Date().valueOf() + authorization.client.expiry * 1000,
+    iat: new Date().valueOf(),
+    //If there's a code, the auth is complete
+    auth_time: authorization.endDate!.valueOf(),
+    nonce: authorization.nonce,
+    azp: client_id,
+    c_hash: generateOIDCHash(code),
+    //If there's a code, there's a gender
+    gender: authorization.userData!.gender,
+  })
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: key.id,
+      type: "JOSE",
+    })
+    .sign(key.importedPrivate);
+  const access_token = await new SignJWT({
+    iss: config.get<string>("server.publicUrl"),
+    //If there's a code, there's a ckey
+    sub: authorization.ckey!,
+    aud: config.get<string>("server.publicUrl"),
+    exp: new Date().valueOf() + authorization.client.expiry * 1000,
+    iat: new Date().valueOf(),
+    //If there's a code, the auth is complete
+    auth_time: authorization.endDate!.valueOf(),
+    nonce: authorization.nonce,
+    azp: client_id,
+    c_hash: generateOIDCHash(code),
+    //If there's a code, there's a gender
+    gender: authorization.userData!.gender,
+  })
+    .setProtectedHeader({
+      alg: "RS256",
+      kid: key.id,
+      type: "JOSE",
+    })
+    .sign(key.importedPrivate);
 
   res.type("json").json({
-    access_token: Buffer.from(`${username}`).toString("base64"),
+    access_token: access_token,
     token_type: "bearer",
+    id_token: id_token,
   });
   tokenLogger.info(`Issued token to "${authorization.ckey}" for client "${client_id}"`);
 });

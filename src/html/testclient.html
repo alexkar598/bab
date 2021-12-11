@@ -13,7 +13,7 @@
 <form method="post" action="../../auth/authorize">
   <label>
     response_type
-    <input name="response_type" value="code id_token">
+    <input name="response_type" value="code">
   </label>
   <label>
     client_id
@@ -39,15 +39,19 @@
     nonce
     <input name="nonce" value="nonce be like">
   </label>
+  <label>
+    id_token_hint
+    <input name="id_token_hint" value="">
+  </label>
   <br>
   <input type="submit" value="Login With BYOND (POST)">
 </form>
 
 <script>
-  const params = new URLSearchParams(window.location.hash.substring(1));
+  //const params = new URLSearchParams(window.location.hash.substring(1));
+  const params = new URLSearchParams(window.location.search);
   console.log(params, window.location)
   const code = params.get("code");
-  const id_token = params.get("id_token");
   const redirect = new URL(window.location);
   redirect.hash = ""
   redirect.search = ""
@@ -71,31 +75,18 @@
         Authorization: `Basic ${window.btoa(`testing:testing_secret`)}`,
       },
     }).then(response => response.json()).then(response => {
-      const access_token = response.access_token
-      if(access_token) {
-        welcome.textContent = `Thank you for logging in, ${window.atob(access_token)}\n ID Token: ${id_token}`
-      } else {
-        welcome.textContent = `Can't fetch auth token ${JSON.stringify(response)}`
-      }
+      const access_token = response.access_token;
+      welcome.innerHTML = `<span>Thank you for logging in.</span> AT: <pre>${access_token}</pre> ID: <pre>${response.id_token}</pre>`
     });
   }
 
   if(code) {
     const link = document.getElementById("action_link");
     const url = new URL(window.location.href);
-    url.searchParams.delete("code")
-    url.searchParams.delete("state")
+    url.search = ""
+    url.hash = ""
     link.href = url.toString()
     link.text = "Logout"
-  } else {
-    const link = document.getElementById("action_link");
-    const url = new URL("../../auth/authorize", window.location.href);
-    url.searchParams.set("response_type", "code");
-    url.searchParams.set("client_id", "testing");
-    url.searchParams.set("redirect_uri", redirect.toString());
-    url.searchParams.set("state", Math.random().toString().substring(2));
-    link.href = url.toString();
-    link.text = "Login with byond";
   }
   document.getElementById("redir_uri").value = redirect.toString();
 </script>

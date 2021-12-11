@@ -1,4 +1,5 @@
 import {URL} from "url";
+import {importJWK, JWK, jwtVerify} from "jose";
 import Prisma from "@prisma/client";
 import rTracer from "cls-rtracer";
 import config from "config";
@@ -50,6 +51,7 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
     registration,
     request,
     request_uri,
+    id_token_hint,
   } = Object.fromEntries(
     Object.entries(raw_params as Record<string, string | undefined>).filter(
       ([, value]) => value !== "",
@@ -99,6 +101,40 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
 
   //We have validated enough of the request to know the redirect_uri is valid. From now on, errors go back to the app
   req.redirect_uri = redirect_uri;
+
+  //Set sub claim
+  let subClaim = null;
+  if (id_token_hint !== undefined) {
+    try {
+      const decodedToken = await jwtVerify(id_token_hint, async protectedHeader => {
+        const key = await prismaDb.signingKey.findUnique({
+          where: {
+            id: protectedHeader.kid,
+          },
+          select: {
+            public: true,
+          },
+        });
+        if (!key) throw Error(`No key found for ID ${protectedHeader.kid}`);
+
+        return await importJWK(key.public as JWK, "RS256");
+      });
+
+      subClaim = decodedToken.payload.sub;
+    } catch (error) {
+      authLogger.warning("Invalid id_token_hint", {
+        error,
+        id_token_hint,
+      });
+      return oauth_authorize_error(
+        res,
+        req.redirect_uri,
+        "invalid_request",
+        "Invalid id_token_hint",
+        null,
+      );
+    }
+  }
 
   //https://openid.net/specs/oauth-v2-multiple-response-types-1_0.html Section 2.1 Response Modes
   if (_response_mode !== undefined && !(_response_mode in Prisma.ResponseMode)) {
@@ -339,6 +375,7 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
       responseTypes: response_types,
       scopes: scopes,
       nonce: nonce,
+      subClaim: subClaim,
     },
   });
 

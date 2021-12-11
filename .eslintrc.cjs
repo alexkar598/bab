@@ -18,7 +18,8 @@ module.exports = {
     "import/order": "warn",
     "import/no-namespace": "error",
     "import/no-named-as-default-member": "off",
-    "import/default": "off"
+    "import/default": "off",
+    "@typescript-eslint/no-non-null-assertion": "off"
   },
   settings: {
     "import/parsers": {

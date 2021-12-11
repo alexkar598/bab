@@ -148,6 +148,7 @@ const callbackEndpoint = expressAsyncHandler(async (req, res) => {
       responseMode: true,
       responseTypes: true,
       nonce: true,
+      subClaim: true,
     },
     where: {
       byondState: byondState,
@@ -242,6 +243,18 @@ const callbackEndpoint = expressAsyncHandler(async (req, res) => {
       authorization.redirectUri,
       "access_denied",
       "Hub does not recognize certificate",
+      authorization.state,
+    );
+  }
+
+  //Sub claim
+  if (authorization.subClaim !== null && authorization.subClaim !== userData.key) {
+    callbackLogger.warning("Another user is logged in", {byondCert, domain});
+    return oauth_authorize_error(
+      res,
+      authorization.redirectUri,
+      "login_required",
+      "Another user is logged in and the client has made a sub claim.",
       authorization.state,
     );
   }

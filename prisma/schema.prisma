@@ -52,6 +52,8 @@ model Authorization {
   scopes        String[]
   //nonce
   nonce         String?
+  //sub claim wanted
+  subClaim      String?
 
   ///Authorization process
   //IP of the resource owner
