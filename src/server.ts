@@ -15,6 +15,9 @@ if (config.get<boolean>("security.secure")) {
     if (!req.secure) res.send("Secure mode enabled. Use HTTPS or disable secure mode.").end();
   });
 }
+
+expressApp.set("trust proxy", config.get<string | number | boolean>("server.proxy"));
+
 expressApp.use(express.urlencoded({extended: false}));
 expressApp.use(RIdMiddleWare({echoHeader: true}));
 expressApp.use(

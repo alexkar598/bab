@@ -4,7 +4,9 @@
     "host": "::1",
     "port": "80",
     //How can people access this service
-    "publicUrl": ""
+    "publicUrl": "",
+    //Is it behind a proxy, follows the format at https://expressjs.com/en/4x/api.html#trust.proxy.options.table minus the functions
+    "proxy": false
   },
   //Database settings
   "database": {
