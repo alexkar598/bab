@@ -182,8 +182,6 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
 
   const key = await getActiveKey();
 
-  callbackLogger.info("Issuing ID token via hybrid/implicit flow");
-
   const access_token = await new SignJWT({
     iss: config.get<string>("server.publicUrl"),
     //If there's a code, there's a ckey

@@ -53,6 +53,7 @@ const userInfoEndpoint = expressAsyncHandler(async (req: Request, res: Response)
     .json({
       sub: payload.sub,
       gender: payload.gender,
+      ckey: payload.ckey,
     })
     .end();
 });

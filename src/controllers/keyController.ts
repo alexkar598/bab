@@ -61,7 +61,7 @@ async function getActiveKey(): Promise<SigningKey> {
 
 async function processOldKeys() {
   keyController.info("Deleting old keys");
-  const time15daysago = Date.now() - 3 * 24 * 60 * 60 * 1000;
+  const time15daysago = Date.now() - 15 * 24 * 60 * 60 * 1000;
   await prismaDb.signingKey.deleteMany({
     where: {
       createdTime: {

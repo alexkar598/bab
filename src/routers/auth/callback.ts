@@ -103,8 +103,8 @@ const callbackEndpoint = expressAsyncHandler(async (req, res) => {
   //Validate that the ip matches
   if (decodedCert.clientIp !== req.ip) {
     callbackLogger.warning("clientIp mismatch", {
-      expected: decodedCert.byondState,
-      provided: byondState,
+      expected: decodedCert.clientIp,
+      provided: req.ip,
     });
     callbackLogger.crit("Suspicious behvaiour");
     return returnError("Client IP mismatch.");
