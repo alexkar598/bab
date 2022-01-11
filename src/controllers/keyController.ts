@@ -11,7 +11,7 @@ async function generateNewKey(): Promise<Prisma.SigningKey> {
       active: true,
     },
     data: {
-      active: false,
+      active: null,
       private: {},
     },
   });

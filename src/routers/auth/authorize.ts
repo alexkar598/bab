@@ -11,6 +11,13 @@ import {oauth_authorize_error} from "../../util/responseHelpers.js";
 
 const authLogger = moduleLogger("AuthorizeEndpoint");
 const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
+  if (req.headers["user-agent"]?.includes("Discordbot"))
+    return res
+      .status(200)
+      .type("text/plain")
+      .send("User-Agent contains DiscordBot. Ignoring request")
+      .end();
+
   const raw_params = req.method === "GET" ? req.query : req.body;
 
   //Validate that no query parameters are set twice, and check for Qs memes, see RFC6749 Section 3.1
