@@ -181,6 +181,8 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
   }
 
   const key = await getActiveKey();
+  const currentEpoch = Math.floor(new Date().valueOf() / 1000);
+  const authTime = Math.floor(authorization.endDate!.valueOf() / 1000);
 
   const access_token = await new SignJWT({
     iss: config.get<string>("server.publicUrl"),
@@ -188,10 +190,10 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
     sub: `user:${authorization.ckey!}`,
     ckey: authorization.ckey!,
     aud: config.get<string>("server.publicUrl"),
-    exp: new Date().valueOf() + authorization.client.expiry * 1000,
-    iat: new Date().valueOf(),
+    exp: currentEpoch + authorization.client.expiry,
+    iat: currentEpoch.valueOf(),
     //If there's a code, the auth is complete
-    auth_time: authorization.endDate!.valueOf(),
+    auth_time: authTime,
     nonce: authorization.nonce,
     azp: client_id,
     c_hash: generateOIDCHash(code),
@@ -210,10 +212,10 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
     sub: `user:${authorization.ckey!}`,
     ckey: authorization.ckey!,
     aud: client_id,
-    exp: new Date().valueOf() + authorization.client.expiry * 1000,
-    iat: new Date().valueOf(),
+    exp: currentEpoch.valueOf() + authorization.client.expiry,
+    iat: currentEpoch.valueOf(),
     //If there's a code, the auth is complete
-    auth_time: authorization.endDate!.valueOf(),
+    auth_time: authTime,
     nonce: authorization.nonce,
     azp: client_id,
     c_hash: generateOIDCHash(code),

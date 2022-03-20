@@ -1,3 +1,4 @@
+import config from "config";
 import {Request, Response} from "express";
 import expressAsyncHandler from "express-async-handler";
 import {importJWK, JWK, jwtVerify} from "jose";
@@ -25,19 +26,26 @@ const userInfoEndpoint = expressAsyncHandler(async (req: Request, res: Response)
   const accessToken = authHeader.substring(7);
   let payload;
   try {
-    const decodedToken = await jwtVerify(accessToken, async protectedHeader => {
-      const key = await prismaDb.signingKey.findUnique({
-        where: {
-          id: protectedHeader.kid,
-        },
-        select: {
-          public: true,
-        },
-      });
-      if (!key) throw Error(`No key found for ID ${protectedHeader.kid}`);
+    const decodedToken = await jwtVerify(
+      accessToken,
+      async protectedHeader => {
+        const key = await prismaDb.signingKey.findUnique({
+          where: {
+            id: protectedHeader.kid,
+          },
+          select: {
+            public: true,
+          },
+        });
+        if (!key) throw Error(`No key found for ID ${protectedHeader.kid}`);
 
-      return await importJWK(key.public as JWK, "RS256");
-    });
+        return await importJWK(key.public as JWK, "RS256");
+      },
+      {
+        audience: config.get<string>("server.publicUrl"),
+        issuer: config.get<string>("server.publicUrl"),
+      },
+    );
 
     payload = decodedToken.payload;
   } catch (error) {

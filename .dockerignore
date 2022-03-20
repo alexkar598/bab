@@ -1,3 +1,4 @@
 node_modules
 !node_modules/@alexkar598/bab-hub
 .git
+.idea
