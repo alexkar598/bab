@@ -22,10 +22,7 @@ COPY --from=build /app/node_modules node_modules
 COPY config config
 COPY prisma prisma
 COPY package.json package.json
-COPY tsconfig.json tsconfig.json
-COPY types types
-COPY src src
+COPY dist dist
 
-ENV NODE_OPTIONS="--loader ts-node/esm"
 ENV NODE_ENV=production
-CMD /bin/sh -c "./node_modules/.bin/prisma migrate deploy && node src/index.ts"
+CMD /bin/sh -c "./node_modules/.bin/prisma migrate deploy && node dist/index.js"

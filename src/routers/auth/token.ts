@@ -138,7 +138,7 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
   if (
     !authorization ||
     authorization.status !== Prisma.AuthorizationStatus.CodeIssued ||
-    (authorization.endDate ?? 0) < time5minsago
+    (authorization.endDate ?? 0).valueOf() < time5minsago
   ) {
     tokenLogger.warning("Invalid or expired code", {code, authorization});
     return oauth_token_error(res, "invalid_grant", "Invalid code");

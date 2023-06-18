@@ -1,6 +1,7 @@
 # Project exclude paths
 /node_modules/
 /config/local*
-logs/
+/logs/
+/dist
 
 .env
