@@ -3,7 +3,7 @@ Byond Authentication Bridge
 
 # Description
 OIDC Provider that integrates with BYOND's DMCGI feature to allow authentication with BYOND credentials
-For client registration for the instance run at https://bab.yogstation.net, see https://forms.gle/TY5AyaiuMYFZ272r8
+For client registration for the instance run at https://bab.alexkar598.dev, see https://forms.gle/TY5AyaiuMYFZ272r8
 
 How to self host(for testing), more or less
 1. npm install
