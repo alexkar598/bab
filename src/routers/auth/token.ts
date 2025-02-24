@@ -232,7 +232,7 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
 
   res.type("json").json({
     access_token: access_token,
-    token_type: "bearer",
+    token_type: "Bearer",
     id_token: id_token,
   });
   tokenLogger.info(`Issued token to "${authorization.ckey}" for client "${client_id}"`);
