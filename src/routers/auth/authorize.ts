@@ -7,6 +7,7 @@ import expressAsyncHandler from "express-async-handler";
 import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";
 import {promptTypes} from "../../util/constants.js";
+import {generateSecureString} from "../../util/crypto.js";
 import {oauth_authorize_error} from "../../util/responseHelpers.js";
 
 const authLogger = moduleLogger("AuthorizeEndpoint");
@@ -397,6 +398,7 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
   }
   const {byondState} = await prismaDb.authorization.create({
     data: {
+      byondState: await generateSecureString(24),
       state: state,
       redirectUri: req.redirect_uri,
       client: {

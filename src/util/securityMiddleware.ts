@@ -5,6 +5,7 @@ import {Application, NextFunction, Request, Response} from "express";
 import expressAsyncHandler from "express-async-handler";
 import {prismaDb} from "../db/index.js";
 import {moduleLogger} from "../logger.js";
+import {generateSecureString} from "./crypto.js";
 
 const securityLogger = moduleLogger("SecurityMiddleware");
 export function registerSecurityMiddleware(app: Application) {
@@ -62,13 +63,13 @@ export function registerSecurityMiddleware(app: Application) {
         }
         const {encodedCert} = await prismaDb.byondCert.create({
           data: {
+            encodedCert: await generateSecureString(24),
             byondState,
             byondCert: jsonbyondcert,
             clientIp: req.ip,
           },
         });
 
-        console.log(req.path, config.get<string>("server.publicUrl"));
         const targetUri = new URL(req.path, config.get<string>("server.publicUrl"));
         targetUri.searchParams.set("byond_state", byondState);
         targetUri.searchParams.set("client_id", req.query.client_id as string);
