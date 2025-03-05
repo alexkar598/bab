@@ -2,6 +2,7 @@
   //Where to bind http server
   "server": {
     "host": "::1",
+    // Use a nonnumeric value to use an environment variable
     "port": "80",
     //How can people access this service
     "publicUrl": "",

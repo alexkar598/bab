@@ -62,7 +62,20 @@ expressApp.use((err: unknown, _req: Request, res: Response, _next: NextFunction)
 
 export function registerServer() {
   return new Promise((resolve, reject) => {
-    const port = config.get<number>("server.port");
+    let string_port: string | undefined = config.get<string>("server.port");
+    // Test for alphanumericity by checking if the string -> int -> string conversion is lossless
+    if (String(parseInt(string_port)) !== string_port) {
+      string_port = process.env[string_port];
+    }
+
+    if (string_port == null) {
+      httpLogger.error(`Unable to use ${string_port} from environment variable`);
+      reject("Unable to listen");
+      return;
+    }
+
+    const port = parseInt(string_port);
+
     const expressServer = expressApp.listen(port, config.get<string>("server.host"), () => {
       httpLogger.info(`Listening on ${port}`);
       resolve(port);
