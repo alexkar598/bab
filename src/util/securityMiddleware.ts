@@ -57,6 +57,9 @@ export function registerSecurityMiddleware(app: Application) {
           return errorRedirect("Certificate already used. Restart authentication process.");
         }
 
+        if (req.ip == null) {
+          return errorRedirect("Client hung up before request was complete, or ip is null");
+        }
         const {encodedCert} = await prismaDb.byondCert.create({
           data: {
             byondState,

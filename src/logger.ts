@@ -38,7 +38,9 @@ const generatePastelColor = (input_str: string) => {
 };
 
 const colorMap: Map<string, string> = new Map();
-const getColorFromString = (input_str: string) => {
+const getColorFromString = (input_str?: string) => {
+  if (input_str == null) return "#ffffff";
+
   const color = colorMap.get(input_str) ?? generatePastelColor(input_str);
   colorMap.set(input_str, color);
   return color;
@@ -48,7 +50,10 @@ const getColorFromString = (input_str: string) => {
 let loggerLogger: Logger;
 
 const consoleFormatter = format.printf(info => {
-  const {timestamp, level, module, message, requestId, ...metadata} = info;
+  const {timestamp, level, message, ...metadata} = info;
+  const module = metadata.module as string | undefined;
+  const requestId = metadata.requestId as string;
+
   const formattedMetadata = Object.entries(metadata).map(([key, val]) => [
     key,
     config.get<boolean>("logging.console.pretty")

@@ -1,3 +1,4 @@
+import {JWTVerifyGetKey} from "jose/dist/types/jwt/verify";
 import {URL} from "url";
 import {importJWK, JWK, jwtVerify} from "jose";
 import Prisma from "@prisma/client";
@@ -129,7 +130,7 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
   let subClaim = null;
   if (id_token_hint !== undefined) {
     try {
-      const decodedToken = await jwtVerify(id_token_hint, async protectedHeader => {
+      const decodedToken = await jwtVerify(id_token_hint, (async protectedHeader => {
         const key = await prismaDb.signingKey.findUnique({
           where: {
             id: protectedHeader.kid,
@@ -141,7 +142,7 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
         if (!key) throw Error(`No key found for ID ${protectedHeader.kid}`);
 
         return await importJWK(key.public as JWK, "RS256");
-      });
+      }) satisfies JWTVerifyGetKey);
 
       subClaim = decodedToken.payload.sub;
     } catch (error) {
@@ -386,6 +387,15 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
   //Leaving the spec and entering our implementation code
 
   //Save information about the login attempt
+  if (req.ip == null) {
+    return oauth_authorize_error(
+      res,
+      req.redirect_uri,
+      "invalid_request",
+      "Client hung up before request was complete, or ip is unobtainable.",
+      state,
+    );
+  }
   const {byondState} = await prismaDb.authorization.create({
     data: {
       state: state,
@@ -404,7 +414,7 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
 
   const publicUrl = config.get<string>("server.publicUrl");
   let byondUrl;
-  if (config.get<string>("security.test")) {
+  if (config.get<boolean>("security.test")) {
     byondUrl = new URL("/test", publicUrl);
   } else {
     byondUrl = new URL("https://secure.byond.com/login.cgi");

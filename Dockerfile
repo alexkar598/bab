@@ -1,4 +1,4 @@
-FROM node:17-alpine as build
+FROM node:22-alpine as build
 
 ENV NODE_ENV=production
 WORKDIR /app
@@ -12,7 +12,7 @@ RUN npm run generateDbClient
 
 FROM alpine:3.15 as final
 
-RUN apk --no-cache add --upgrade nodejs~16
+RUN apk --no-cache add --upgrade nodejs~22
 
 RUN mkdir -p /app
 RUN mkdir /app/logs

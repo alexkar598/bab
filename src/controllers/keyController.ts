@@ -1,5 +1,5 @@
 import Prisma from "@prisma/client";
-import {calculateJwkThumbprint, exportJWK, generateKeyPair, importJWK, JWK, KeyLike} from "jose";
+import {calculateJwkThumbprint, exportJWK, generateKeyPair, importJWK, JWK, CryptoKey} from "jose";
 import {prismaDb} from "../db/index.js";
 import {moduleLogger} from "../logger.js";
 
@@ -15,7 +15,9 @@ async function generateNewKey(): Promise<Prisma.SigningKey> {
       private: {},
     },
   });
-  const {publicKey: _publicKey, privateKey: _privateKey} = await generateKeyPair("RS256");
+  const {publicKey: _publicKey, privateKey: _privateKey} = await generateKeyPair("RS256", {
+    extractable: true,
+  });
   const publicKey = await exportJWK(_publicKey);
   const privateKey = await exportJWK(_privateKey);
   publicKey.alg = "RS256";
@@ -38,8 +40,8 @@ async function generateNewKey(): Promise<Prisma.SigningKey> {
 }
 
 export type SigningKey = Prisma.SigningKey & {
-  importedPrivate: KeyLike | Uint8Array;
-  importedPublic: KeyLike | Uint8Array;
+  importedPrivate: CryptoKey | Uint8Array;
+  importedPublic: CryptoKey | Uint8Array;
 };
 
 async function getActiveKey(): Promise<SigningKey> {

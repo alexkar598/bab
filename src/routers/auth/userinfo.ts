@@ -2,6 +2,7 @@ import config from "config";
 import {Request, Response} from "express";
 import expressAsyncHandler from "express-async-handler";
 import {importJWK, JWK, jwtVerify} from "jose";
+import {JWTVerifyGetKey} from "jose/dist/types/jwt/verify";
 import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";
 
@@ -28,7 +29,7 @@ const userInfoEndpoint = expressAsyncHandler(async (req: Request, res: Response)
   try {
     const decodedToken = await jwtVerify(
       accessToken,
-      async protectedHeader => {
+      (async protectedHeader => {
         const key = await prismaDb.signingKey.findUnique({
           where: {
             id: protectedHeader.kid,
@@ -40,7 +41,7 @@ const userInfoEndpoint = expressAsyncHandler(async (req: Request, res: Response)
         if (!key) throw Error(`No key found for ID ${protectedHeader.kid}`);
 
         return await importJWK(key.public as JWK, "RS256");
-      },
+      }) satisfies JWTVerifyGetKey,
       {
         audience: config.get<string>("server.publicUrl"),
         issuer: config.get<string>("server.publicUrl"),
