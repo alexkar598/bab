@@ -13,4 +13,4 @@ export const promptTypes: {
   consent: "consent",
   select_account: "select_account",
 };
-export type promptTypes = typeof promptTypes[keyof typeof promptTypes];
+export type promptTypes = (typeof promptTypes)[keyof typeof promptTypes];

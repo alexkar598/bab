@@ -1,8 +1,7 @@
 import config from "config";
 import {Request, Response} from "express";
 import expressAsyncHandler from "express-async-handler";
-import {importJWK, JWK, jwtVerify} from "jose";
-import {JWTVerifyGetKey} from "jose/dist/types/jwt/verify";
+import {importJWK, JWK, jwtVerify, JWTVerifyGetKey} from "jose";
 import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";
 

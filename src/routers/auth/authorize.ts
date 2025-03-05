@@ -1,6 +1,5 @@
-import {JWTVerifyGetKey} from "jose/dist/types/jwt/verify";
 import {URL} from "url";
-import {importJWK, JWK, jwtVerify} from "jose";
+import {JWTVerifyGetKey, importJWK, JWK, jwtVerify} from "jose";
 import Prisma from "@prisma/client";
 import rTracer from "cls-rtracer";
 import config from "config";

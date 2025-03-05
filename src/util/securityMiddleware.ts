@@ -81,7 +81,6 @@ export function registerSecurityMiddleware(app: Application) {
       }
     }),
   );
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     if (!req.callback) return next(err);
 

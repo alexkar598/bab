@@ -7,7 +7,6 @@ import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";
 import {generateOIDCHash, secureCompare} from "../../util/crypto.js";
 import {oauth_token_error} from "../../util/responseHelpers.js";
-import {callbackLogger} from "./callback.js";
 
 const tokenLogger = moduleLogger("TokenEndpoint");
 const tokenEndpoint = expressAsyncHandler(async (req, res) => {

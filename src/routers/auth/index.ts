@@ -28,7 +28,6 @@ authRouter.use("/callback", (err: unknown, req: Request, res: Response, next: Ne
 authRouter.get("/authorize", authorizeEndpoint);
 authRouter.post("/authorize", authorizeEndpoint);
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 authRouter.use("/authorize", (err: unknown, req: Request, res: Response, next: NextFunction) => {
   const errstr = `An internal server error occured. Please contact the application owner.`;
   if (req.redirect_uri != undefined) {
