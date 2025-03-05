@@ -26,4 +26,4 @@ COPY package.json package.json
 COPY dist dist
 
 ENV NODE_ENV=production
-CMD /bin/sh -c "./node_modules/.bin/prisma migrate deploy && node dist/index.js"
+CMD /bin/sh -c "node dist/index.js"

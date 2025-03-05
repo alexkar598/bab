@@ -36,8 +36,7 @@ async function main() {
         ],
         type: Prisma.ClientType.Confidential,
       },
-    ],
-    skipDuplicates: true,
+    ]
   });
 }
 

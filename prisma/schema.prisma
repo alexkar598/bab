@@ -3,12 +3,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Client {
-  clientId          String          @id
+  clientId          String          @id @map("_id")
   redirectUris      String[]
   contactInfo       String
   desc              String
@@ -28,7 +28,7 @@ enum ClientType {
 
 model Authorization {
   ///Model fields
-  id     Int                 @id @default(autoincrement())
+  id     String              @id @default(auto()) @map("_id") @db.ObjectId
   //Status of the authorization
   status AuthorizationStatus @default(Created)
 
@@ -101,14 +101,14 @@ enum AuthorizationStatus {
 }
 
 model UserData {
-  ckey          String          @id
+  ckey          String          @id @map("_id")
   gender        String
   Authorization Authorization[]
 }
 
 model ByondCert {
   //Certificate provided to resource owner
-  encodedCert String   @id
+  encodedCert String   @id @map("_id")
   //State to identify request
   byondState  String
   //Ceritificate provided by byond
@@ -124,7 +124,7 @@ model ByondCert {
 model SigningKey {
   private     Json
   public      Json
-  id          String   @id
+  id          String   @id @map("_id")
   active      Boolean? @unique
   createdTime DateTime @default(now())
 }
