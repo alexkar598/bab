@@ -1,18 +1,19 @@
-FROM node:22-alpine as build
+FROM alpine:3.21.3 as build
+
+RUN apk --no-cache add --upgrade nodejs~22 npm openssl
 
 ENV NODE_ENV=production
 WORKDIR /app
 
 COPY ["package.json", "package-lock.json", "./"]
-RUN npm install --production
-COPY "node_modules/@alexkar598/bab-hub" "node_modules/@alexkar598/bab-hub"
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --production
 
 COPY ["prisma", "prisma"]
 RUN npm run generateDbClient
 
-FROM alpine:3.15 as final
+FROM alpine:3.21.3 as final
 
-RUN apk --no-cache add --upgrade nodejs~22
+RUN apk --no-cache add --upgrade nodejs~22 openssl
 
 RUN mkdir -p /app
 RUN mkdir /app/logs
