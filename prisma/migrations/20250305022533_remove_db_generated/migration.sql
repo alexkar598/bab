@@ -8,3 +8,6 @@ ALTER COLUMN "createdTime" SET DEFAULT CURRENT_TIMESTAMP;
 
 -- AlterTable
 ALTER TABLE "SigningKey" ALTER COLUMN "createdTime" SET DEFAULT CURRENT_TIMESTAMP;
+
+-- Manual edits
+DROP EXTENSION "pgcrypto";
