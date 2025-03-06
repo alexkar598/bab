@@ -1,7 +1,5 @@
 services:
   bab:
-    image: bab
-    pid: "container:bab-database-1"
     build:
       context: .
     restart: unless-stopped
@@ -37,7 +35,7 @@ services:
       retries: 5
       start_period: 80s
     ports:
-      - "15432:5432"
+      - "127.0.0.1:15432:5432"
 
 volumes:
   logs:
