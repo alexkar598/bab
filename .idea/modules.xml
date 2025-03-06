@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/bab.iml" filepath="$PROJECT_DIR$/bab.iml" />
       <module fileurl="file://$PROJECT_DIR$/../bab-hub/bab-hub.iml" filepath="$PROJECT_DIR$/../bab-hub/bab-hub.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../bab-hub-rs/bab-hub-rs.iml" filepath="$PROJECT_DIR$/../bab-hub-rs/bab-hub-rs.iml" />
     </modules>
   </component>
 </project>

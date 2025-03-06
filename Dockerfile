@@ -1,29 +1,36 @@
-FROM alpine:3.21.3 as build
+FROM node:22-bookworm-slim AS build
 
-RUN apk --no-cache add --upgrade nodejs~22 npm openssl
-
-ENV NODE_ENV=production
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json", "./"]
-RUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm install --production
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . .
+RUN npm install
+RUN npm run build
 
 COPY ["prisma", "prisma"]
 RUN npm run generateDbClient
 
-FROM alpine:3.21.3 as final
+FROM node:22-bookworm-slim AS final
 
-RUN apk --no-cache add --upgrade nodejs~22 openssl
+ENV NODE_ENV=production
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app
 RUN mkdir /app/logs
 WORKDIR /app
 
-COPY --from=build /app/node_modules node_modules
+COPY ["package.json", "package-lock.json", "./"]
+RUN npm install --production
+
 COPY config config
 COPY prisma prisma
-COPY package.json package.json
-COPY dist dist
+COPY --from=build /app/dist dist
+COPY --from=build /app/node_modules/.prisma node_modules/.prisma
 
-ENV NODE_ENV=production
-CMD /bin/sh -c "./node_modules/.bin/prisma migrate deploy && node dist/index.js"
+CMD ["/bin/sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/index.js"]

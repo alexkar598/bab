@@ -1,10 +1,10 @@
 import {URL, URLSearchParams} from "url";
 import {SignJWT} from "jose";
-import {requestCkey} from "@alexkar598/bab-hub";
 import Prisma from "@prisma/client";
 import rTracer from "cls-rtracer";
 import config from "config";
 import expressAsyncHandler from "express-async-handler";
+import {requestCkey} from "bab-hub-rs";
 import {getActiveKey} from "../../controllers/keyController.js";
 import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";

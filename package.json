@@ -9,8 +9,7 @@
     "nodemon": "NODE_OPTIONS=\"--loader ts-node/esm\" npx nodemon src/index.ts",
     "start": "NODE_OPTIONS=\"--loader ts-node/esm\" node src/index.ts",
     "devUpdateDb": "npx prisma format && npx prisma db push && npx prisma generate",
-    "generateDbClient": "npx prisma generate",
-    "buildDocker": "docker build . --secret id=npmrc,src=$HOME/.npmrc"
+    "generateDbClient": "npx prisma generate"
   },
   "keywords": [],
   "author": "alexkar598",
@@ -24,8 +23,8 @@
   },
   "homepage": "https://github.com/alexkar598/bab#readme",
   "dependencies": {
-    "@alexkar598/bab-hub": "^1.3.0",
     "@prisma/client": "^6.4.1",
+    "bab-hub-rs": "0.0.2",
     "chalk": "^5.4.1",
     "cls-rtracer": "^2.6.3",
     "config": "^3.3.12",

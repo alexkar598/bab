@@ -1,21 +1,25 @@
 services:
   bab:
     image: bab
+    pid: "container:bab-database-1"
     build:
-      secrets:
-        - npmrc
       context: .
     restart: unless-stopped
     init: true
     environment:
-      DATABASE_URL: postgresql://postgres@database:5432/postgres?schema=bab
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:?error}@database:5432/postgres?schema=bab
     configs:
       - source: local-json
         target: /app/config/local.json
     volumes:
       - logs:/app/logs
     depends_on:
-      - database
+      database:
+        required: true
+        condition: service_healthy
+        restart: true
+    ports:
+      - "8080:80"
 
   database:
     image: postgres:17.4-alpine3.21
@@ -25,17 +29,15 @@ services:
       - database:/var/lib/postgresql/data
     environment:
       # Network is isolated, who cares
-      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?error}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 30s
       timeout: 60s
       retries: 5
       start_period: 80s
-
-secrets:
-  npmrc:
-    file: $HOME/.npmrc
+    ports:
+      - "15432:5432"
 
 volumes:
   logs:
@@ -46,12 +48,12 @@ configs:
     content: |
       {
         "server": {
-          "publicUrl": "https://bab.alexkar598.dev",
+          "publicUrl": "http://localhost:8080",
           "host": "0.0.0.0",
           "proxy": false
         },
         "database": {
-          "connectionString": "postgresql://postgres@database:5432/postgres?schema=bab"
+          "connectionString": "postgresql://postgres:${DB_PASSWORD:?error}@database:5432/postgres?schema=bab"
         },
         "logging": {
           "http": {
