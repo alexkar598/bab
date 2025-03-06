@@ -10,12 +10,6 @@ const httpLogger = moduleLogger("HTTP");
 
 const expressApp = express();
 
-if (config.get<boolean>("security.secure")) {
-  expressApp.use((req, res) => {
-    if (!req.secure) res.send("Secure mode enabled. Use HTTPS or disable secure mode.").end();
-  });
-}
-
 expressApp.set("trust proxy", config.get<string | number | boolean>("server.proxy"));
 
 expressApp.use(express.urlencoded({extended: false}));

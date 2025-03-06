@@ -62,8 +62,6 @@
   },
   //Changing any of these in production environments is heavily discouraged. You will probably violate an RFC and reduce the security of your installation
   "security": {
-    //Reject any insecure connections.
-    "secure": true,
     //Enable mocking of byond.com/login.cgi.
     "test": false,
     //Enforce redirect_uris
