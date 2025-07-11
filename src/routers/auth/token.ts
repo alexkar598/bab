@@ -118,6 +118,7 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
       ckey: true,
       endDate: true,
       nonce: true,
+      scopes: true,
       userData: {
         select: {
           gender: true,
@@ -233,6 +234,8 @@ const tokenEndpoint = expressAsyncHandler(async (req, res) => {
     access_token: access_token,
     token_type: "Bearer",
     id_token: id_token,
+    scope: authorization.scopes.join(" "),
+    expires_in: authorization.client.expiry,
   });
   tokenLogger.info(`Issued token to "${authorization.ckey}" for client "${client_id}"`);
 });
