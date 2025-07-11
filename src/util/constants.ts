@@ -14,3 +14,4 @@ export const promptTypes: {
   select_account: "select_account",
 };
 export type promptTypes = (typeof promptTypes)[keyof typeof promptTypes];
+export const supportedScopes = ["openid"];

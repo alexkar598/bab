@@ -6,7 +6,7 @@ import config from "config";
 import expressAsyncHandler from "express-async-handler";
 import {prismaDb} from "../../db/index.js";
 import {moduleLogger} from "../../logger.js";
-import {promptTypes} from "../../util/constants.js";
+import {promptTypes, supportedScopes} from "../../util/constants.js";
 import {generateSecureString} from "../../util/crypto.js";
 import {oauth_authorize_error} from "../../util/responseHelpers.js";
 
@@ -174,8 +174,8 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
     );
   }
 
-  //Parse scopes and set scope to openid if undefined
-  const scopes = _scope?.split(" ") ?? null;
+  //Parse scopes
+  let scopes = _scope?.split(" ") ?? null;
 
   //Validate that scopes include openid
   if (!scopes?.includes("openid")) {
@@ -188,6 +188,9 @@ const authorizeEndpoint = expressAsyncHandler(async (req, res) => {
       state,
     );
   }
+
+  // Filter parsed scopes to only the ones we support
+  scopes = scopes.filter(scope => supportedScopes.includes(scope));
 
   //Validate response type is present
   if (_response_type === undefined) {

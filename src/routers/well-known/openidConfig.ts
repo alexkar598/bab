@@ -1,6 +1,7 @@
 import {URL} from "url";
 import {Request, Response} from "express";
 import config from "config";
+import {supportedScopes} from "../../util/constants.js";
 
 const publicUrl = config.get<string>("server.publicUrl");
 const cachedConfig = {
@@ -10,7 +11,7 @@ const cachedConfig = {
   userinfo_endpoint: new URL("/auth/userinfo", publicUrl).toString(),
   jwks_uri: new URL("/auth/keys", publicUrl).toString(),
   //registration_endpoint: null
-  scopes_supported: ["openid"],
+  scopes_supported: supportedScopes,
   response_types_supported: ["code", "id_token", "code id_token"],
   response_modes_supported: ["query", "fragment"],
   grant_types_supported: ["authorization_code", "implicit"],
