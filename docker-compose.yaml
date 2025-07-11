@@ -16,6 +16,12 @@ services:
         required: true
         condition: service_healthy
         restart: true
+    healthcheck:
+      test: [ "CMD-SHELL", "curl localhost/.well-known/openid-configuration" ]
+      interval: 5m
+      timeout: 60s
+      retries: 5
+      start_period: 80s
     ports:
       - "8080:80"
 

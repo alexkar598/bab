@@ -1,10 +1,13 @@
-FROM node:22-bookworm-slim AS build
-
-WORKDIR /app
+FROM node:22-bookworm-slim AS base
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     openssl \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+FROM base AS build
 
 COPY . .
 RUN npm install
@@ -13,17 +16,12 @@ RUN npm run build
 COPY ["prisma", "prisma"]
 RUN npm run generateDbClient
 
-FROM node:22-bookworm-slim AS final
+FROM base AS final
 
 ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssl \
-    && rm -rf /var/lib/apt/lists/*
-
 RUN mkdir -p /app
 RUN mkdir /app/logs
-WORKDIR /app
 
 COPY ["package.json", "package-lock.json", "./"]
 RUN npm install --production
