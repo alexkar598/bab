@@ -17,13 +17,47 @@ const userInfoEndpoint = expressAsyncHandler(async (req: Request, res: Response)
       .end();
   }
 
+  let accessToken: string | null = null;
+
   const authHeader = req.headers.authorization;
-  if (authHeader === undefined || authHeader.substring(0, 7) != "Bearer ") {
-    errorResponse("invalid_request", "Malformed authorization header");
+  const authParam = req.query.access_token;
+  // 2.1 Authorization Request Header Field
+  if (authHeader != undefined) {
+    if (authHeader.substring(0, 7) != "Bearer ") {
+      errorResponse("invalid_request", "Malformed authorization header");
+      return;
+    }
+
+    accessToken = authHeader.substring(7);
+    // 2.3 URI Query Parameter, not recommended
+  } else if (authParam != undefined) {
+    if (typeof authParam !== "string") {
+      errorResponse("invalid_request", "Malformed access_token parameter");
+      return;
+    }
+    res.setHeader("Cache-Control", "private");
+    accessToken = authParam;
+    // 2.2 Form-Encoded Body Parameter
+    // Or no auth
+  } else if (req.method === "POST") {
+    if (req.is("application/x-www-form-urlencoded") == false) {
+      errorResponse("invalid_request", "Body is not form-urlencoded");
+      return;
+    }
+
+    const authField = req.body.access_token;
+    if (authField == undefined) {
+      errorResponse("invalid_request", "access_token field is missing");
+      return;
+    }
+    accessToken = authField;
+  }
+
+  if (accessToken == null) {
+    errorResponse("invalid_request", "No access token provided");
     return;
   }
 
-  const accessToken = authHeader.substring(7);
   let payload;
   try {
     const decodedToken = await jwtVerify(
