@@ -56,8 +56,10 @@
       "level": "info",
       //Enabled
       "enabled": true,
-      //Use util.inspect() to colorize the metadata, has a performance impact
-      "pretty": false
+      //Use util.inspect() to colorize the metadata, has a performance impact. Ignored when logging.console.json is true
+      "pretty": false,
+      //If console output should be in JSON format. Ignores logging.console.pretty when true
+      "json": false
     }
   },
   //Changing any of these in production environments is heavily discouraged. You will probably violate an RFC and reduce the security of your installation

@@ -125,50 +125,58 @@ const logger = createLogger({
   level: "info",
   levels: logLevels,
   transports: [
-    new transports.DailyRotateFile({
-      level: config.get<string>("logging.file.level"),
-      silent: !config.get<boolean>("logging.file.enabled"),
-      datePattern: "YYYY-MM-DD",
-      filename: `logs/bab-%DATE%.log`,
-      dirname: "logs",
-      format: format.combine(
-        stripEmptyMeta(),
-        addRequestId(),
-        format.timestamp({alias: "timestamp"}),
-        format.errors({stack: true}),
-        format.json(),
-      ),
-    }),
-    new transports.DailyRotateFile({
-      level: config.get<string>("logging.file-err.level"),
-      silent: !config.get<boolean>("logging.file-err.enabled"),
-      datePattern: "YYYY-MM-DD",
-      filename: `logs/bab-%DATE%-err.log`,
-      dirname: "logs",
-      format: format.combine(
-        stripEmptyMeta(),
-        addRequestId(),
-        format.timestamp({alias: "timestamp"}),
-        format.errors({stack: true}),
-        format.json(),
-      ),
-    }),
+    config.get<boolean>("logging.file.enabled") &&
+      new transports.DailyRotateFile({
+        level: config.get<string>("logging.file.level"),
+        datePattern: "YYYY-MM-DD",
+        filename: `logs/bab-%DATE%.log`,
+        dirname: "logs",
+        format: format.combine(
+          stripEmptyMeta(),
+          addRequestId(),
+          format.timestamp({alias: "timestamp"}),
+          format.errors({stack: true}),
+          format.json(),
+        ),
+      }),
+    config.get<boolean>("logging.file-err.enabled") &&
+      new transports.DailyRotateFile({
+        level: config.get<string>("logging.file-err.level"),
+        datePattern: "YYYY-MM-DD",
+        filename: `logs/bab-%DATE%-err.log`,
+        dirname: "logs",
+        format: format.combine(
+          stripEmptyMeta(),
+          addRequestId(),
+          format.timestamp({alias: "timestamp"}),
+          format.errors({stack: true}),
+          format.json(),
+        ),
+      }),
     new transports.Console({
       level: config.get<string>("logging.console.level"),
       silent: !config.get<boolean>("logging.console.enabled"),
-      format: format.combine(
-        stripEmptyMeta(),
-        addRequestId(),
-        format.timestamp({alias: "timestamp"}),
-        format.errors({stack: true}),
-        format.colorize({level: true}),
+      format: config.get<string>("logging.console.json")
+        ? format.combine(
+            stripEmptyMeta(),
+            addRequestId(),
+            format.timestamp({alias: "timestamp"}),
+            format.errors({stack: true}),
+            format.json(),
+          )
+        : format.combine(
+            stripEmptyMeta(),
+            addRequestId(),
+            format.timestamp({alias: "timestamp"}),
+            format.errors({stack: true}),
+            format.colorize({level: true}),
 
-        padLevels(),
+            padLevels(),
 
-        consoleFormatter,
-      ),
+            consoleFormatter,
+          ),
     }),
-  ],
+  ].filter(x => x !== false),
 });
 
 const loggers: Map<string, Logger> = new Map();
