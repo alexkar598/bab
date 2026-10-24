@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/alexkar598/bab#readme",
   "dependencies": {
-    "@prisma/client": "^6.4.1",
+    "@prisma/client": "^6.19.3",
     "bab-hub-rs": "0.0.2",
     "chalk": "^5.4.1",
     "cls-rtracer": "^2.6.3",
@@ -55,7 +55,7 @@
     "globals": "^16.0.0",
     "nodemon": "^3.1.9",
     "prettier": "^3.5.3",
-    "prisma": "^6.4.1",
+    "prisma": "^6.19.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
   },

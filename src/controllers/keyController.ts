@@ -84,7 +84,7 @@ function registerKeyController() {
     });
   }
   //1 hour
-  setInterval(asyncWrapper, 60 * 60 * 1000);
+  setInterval(asyncWrapper, 60 * 60 * 1000).unref();
   setImmediate(asyncWrapper);
 }
 
